@@ -1,7 +1,7 @@
 {
-  "name": "Unicorns",
+  "name": "Bayes",
   "version": "0.0.1",
-  "description": "Make unicorns dance",
+  "description": "Compute Bayesian probability",
   "main": "index.js",
   "scripts": {
     "build": "fable --target prod",
