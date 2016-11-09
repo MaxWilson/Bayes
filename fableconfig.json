@@ -1,7 +1,7 @@
 {
   "module": "commonjs",
   "sourceMaps": true,
-  "projFile": "Unicorns.fsproj",
+  "projFile": "Bayes.fsproj",
   "outDir": "js",
   "targets": {
     "prod": {

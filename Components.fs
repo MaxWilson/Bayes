@@ -12,124 +12,25 @@ open Fable.Import.React_Extensions
 module R = Fable.Helpers.React
 open R.Props
 
-let mutable speed = 10
-type UnicornBox(canvasContainer: HTMLElement) =
-    let mutable animate_id = 0.
-    let renderer = Globals.autoDetectRenderer(canvasContainer.clientWidth, canvasContainer.clientHeight, [RendererOptions.BackgroundColor (float 0x1099bb); Resolution 1.; Transparent true]) |> unbox<SystemRenderer>
-    member this.Destroy() =
-        canvasContainer.removeChild(renderer.view) |> ignore
-        window.cancelAnimationFrame animate_id
-    member this.Setup() =
-        canvasContainer.appendChild(renderer.view) |> ignore
-        let stage = Container()
-        let mutable count = 0
-        let countingText =
-            Fable.Import.PIXI.Text("Xpos: 0",
-                [
-                TextStyle.Font "bold italic 24px Arial"
-                TextStyle.Fill (U2.Case1 "#3e1707")
-                TextStyle.Align "center"
-                TextStyle.Stroke (U2.Case1 "#a4410e")
-                TextStyle.StrokeThickness 7.
-                ])
-        countingText.position.x <- 310.
-        countingText.position.y <- canvasContainer.clientHeight
-        countingText.anchor.x <- 0.5
-        countingText.anchor.y <- 1.
-        stage.addChild(countingText) |> ignore
-        let pics = System.Collections.Generic.List<_>()
-        let img = Texture.fromImage("Unicorn.png")
-        let randomColor =
-            let colors = [
-                "blue"
-                "yellow"
-                "orange"
-                "black"
-                "violet"
-                "pink"
-                "green"
-                "darkpink"
-                "darkblue"
-                ]
-            fun() ->
-                let i = (JS.Math.random() * 1000. |> int) % colors.Length
-                colors.[i]
-        let randomNeigh =
-            let sounds = [
-                    "Horse1.mp3"
-                    "Horse2.mp3"
-                    "Horse1.mp3"
-                    "Horse2.mp3"
-                    "Horse1.mp3"
-                    "Horse2.mp3"
-                    "Horse1.mp3"
-                    "Horse2.mp3"
-                    "Horse1.mp3"
-                    "Horse2.mp3"
-                    "MeowMeowMeowMeow.mp3"
-                ]
-            for s in sounds do
-                Audio.Create(s).load() // pre-load all the sounds
-            fun() ->
-                let i = (JS.Math.random() * 1000. |> int) % sounds.Length
-                Audio.Create(sounds.[i]).play()
-        let rec addUnicorn() =
-            let pic = Container()
-            let p = Sprite(img)
-            p.anchor.x <- 0.5
-            p.anchor.y <- 0.5
-            let scale = JS.Math.random() + 0.25
-            pic.addChild(p) |> ignore
-            pic.addChild(Text("neigh!",[TextStyle.Align "center"; TextStyle.Font "bold italic 300%"; TextStyle.Fill (U2.Case1 (randomColor()))], position=Point(0., 100.), anchor=Point(0.5, 0.5))) |> ignore
-            pic.position.x <- JS.Math.random() * 400.
-            pic.position.y <- JS.Math.random() * 400.
-            pic.scale <- Point(scale, scale)
-            pic?velocity <- scale
-            let onclick() =
-              addUnicorn()
-              pic?velocity <- (pic?velocity |> unbox<float>) * -1. + (JS.Math.random() * 0.20 - 0.10)
-              p.scale.x <- p.scale.x * -1. // flip pic but not text
-            pic.on_click (fun e -> onclick()) |> ignore
-            pic.on_tap(fun e -> onclick()) |> ignore
-            pic.interactive <- true
-            stage.addChild(pic) |> ignore
-            pics.Add(pic)
-            count <- count + 1
-            countingText.text <- sprintf "%d little unicorns, running down the field..." count
-            randomNeigh()
-        addUnicorn() // add one unicorn to start with
+type AppState = { prior : int }
 
-        let rec animate(dt:float) =
-            animate_id <- window.requestAnimationFrame(FrameRequestCallback animate)
-            for pic in pics do
-                pic.position.x <- (pic.position.x + (float speed * (pic?velocity |> unbox))) // use scale as a speed constant too, so little horses go slower
-                if (pic.position.x > (renderer.view.width + pic.width * 0.5)) && (pic?velocity |> unbox<float>) > 0. then // right wrap
-                    pic.position.x <- pic.width * -0.5
-                if (pic.position.x < abs pic.width * -0.5) && (pic?velocity |> unbox<float>) < 0. then // left wrap
-                    pic.position.x <- (renderer.view.width + (abs pic.width * 0.5))
-            renderer.render(stage)
-
-        animate 0. // start a pixi animation loop
-
-let mutable unicornBox = Unchecked.defaultof<UnicornBox>
-
-// create a PIXI box with an animation loop
-type DisplayBox() =
-    inherit React.Component<unit, unit>()
-    let mutable canvasContainer = null
-    member this.render() =
-        R.div [ClassName "game-canvas-container"; Ref (fun x -> canvasContainer <- (x :?> HTMLElement))][]
-    member this.componentDidMount() =
-        unicornBox <- UnicornBox(canvasContainer)
-        unicornBox.Setup()
-    member this.componentWillUnmount() =
-        unicornBox.Destroy()
-
-type App() =
-    inherit Component<unit, unit>()
+type App() as this =
+    inherit Component<unit, AppState>()
+    do this.state <- { prior = 50 }
+    let computePosterior prior =
+        let ph = (prior |> float) / 100.
+        let peh = 0.29
+        let pe = (peh * ph + 0.5 * (1. - ph))
+        peh * ph / pe * 100. |> int
+    let handleChange (e: FormEvent) =
+        let txt = e.target?value |> unbox<string>
+        let mutable v = JS.parseFloat txt |> int
+        if v < 0 then v <- 0
+        if v > 100 then v <- 100
+        this.setState { prior = v }
     member this.render() =
         R.div [] [
-            R.button [OnClick (fun (x: MouseEvent) -> speed <- (speed * 2); if speed > 100 then speed <- 1)][R.str "Faster!"]
-            R.button [OnClick (fun (x: MouseEvent) -> unicornBox.Destroy(); unicornBox.Setup())][R.str "Reset"]
-            R.com<DisplayBox,_,_>()[]
+            R.div [Style [CSSProp.FontSize (U2.Case2 "24px")]][R.str "How much confidence (%) did you have in 538's predictions before?"]
+            R.input [Value (U2.Case1 (sprintf "%d" this.state.prior)); OnChange handleChange][]
+            R.div [Style [CSSProp.FontSize (U2.Case2 "24px")]][R.str (sprintf "If you originally had %d%% confidence in 538's predictions, after Trump's win you should now rationally have %d%% confidence in them." this.state.prior (computePosterior this.state.prior))]
             ]

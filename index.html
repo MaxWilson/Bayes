@@ -1,7 +1,7 @@
 ﻿<!doctype html>
 <html>
 <head>
-  <title>Unicorns</title>
+  <title>538 Confidence Rational Updater</title>
   <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
   <meta name="viewport" content="width=device-width,initial-scale=1.0, maximum-scale=1.0,user-scalable=0">
   <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
@@ -9,6 +9,9 @@
 </head>
 <body>
   <div id='content'></div>
+    <div>
+        <h3>Boring Explanation</h3> Bayes' Theorem says that P(H | Evidence) = P(Evidence | H) * P(H) / P(Evidence), where P(Evidence) is a normalization term that makes probabilities still sum to one.<br /><br />Before the election, Nate Silver computed that there was a <a href="http://fivethirtyeight.com/features/final-election-update-theres-a-wide-range-of-outcomes-and-most-of-them-come-up-clinton/">71% chance of Hillary winning.</a> If H is the hypothesis that "538 is better than a coin flip for predicting election results", and Evidence is "Trump wins the election", then P(Evidence | H) = 0.29, P(Evidence) = P(Evidence | H) * P(H) + P(Evidence | not H) * P(not H), and P(H | Evidence) = 0.29 * P(H) / P(Evidence).
+    </div>
   <script src="bundle.js"></script>
 </body>
 </html>

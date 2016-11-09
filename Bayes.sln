@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Unicorns", "Unicorns.fsproj", "{1F8B7844-0DFB-4D2F-A7EF-D0567CA287A2}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Bayes", "Bayes.fsproj", "{1F8B7844-0DFB-4D2F-A7EF-D0567CA287A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
